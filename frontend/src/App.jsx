@@ -48,7 +48,15 @@ export default function App() {
         </section>
 
         <section className="panel output-panel">
-          {result ? (
+          {loading ? (
+            <div className="output-loading">
+              <span className="spinner" aria-hidden="true" />
+              <p>Planning your trip…</p>
+              <span className="output-loading-sub">
+                Geocoding locations, routing, and applying HOS rules.
+              </span>
+            </div>
+          ) : result ? (
             <div className="result-stub">
               <h2 className="panel-title">Trip planned</h2>
               <ul className="result-facts">

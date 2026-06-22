@@ -42,6 +42,7 @@ uv run python manage.py runserver
 
 ```bash
 cd frontend
+cp .env.example .env.local   # sets VITE_API_BASE_URL (defaults to localhost:8000)
 npm install
 npm run dev
 ```

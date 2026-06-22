@@ -14,6 +14,22 @@
 .log-sheets-title { font-size: 1.05rem; font-weight: 700; }
 .log-sheets-count { font-size: 0.8rem; color: var(--color-text-muted); }
 
+.log-sheets-meta { display: flex; align-items: center; gap: var(--space-3); }
+
+.print-btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-white);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.print-btn:hover { background: var(--color-primary); color: var(--color-white); }
+
 .log-sheet {
   margin: 0;
   padding: var(--space-4);
