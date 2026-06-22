@@ -57,13 +57,17 @@ class EventSerializer(serializers.Serializer):
     miles_marker = serializers.FloatField(
         help_text="Cumulative trip miles where this event begins."
     )
+    location = serializers.CharField(allow_null=True, help_text="'City, ST' of the change.")
+    activity = serializers.CharField(allow_null=True, help_text="Log-remark activity phrase.")
 
 
 class DaySegmentSerializer(serializers.Serializer):
     duty_status = serializers.CharField()
     start_min = serializers.FloatField(help_text="Minutes since that day's midnight.")
     end_min = serializers.FloatField()
-    label = serializers.CharField()
+    label = serializers.CharField(allow_null=True)
+    location = serializers.CharField(allow_null=True)
+    activity = serializers.CharField(allow_null=True)
 
 
 class DayLogSerializer(serializers.Serializer):

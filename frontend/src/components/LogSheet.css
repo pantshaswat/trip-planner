@@ -60,7 +60,8 @@
 /* Text */
 .log-hour { font-size: 9px; fill: var(--color-text-muted); }
 .log-row-label { font-size: 9px; fill: var(--color-text); font-weight: 500; }
-.log-row-total { font-size: 11px; fill: var(--color-text); font-weight: 600; }
+.log-total-head { font-size: 8px; fill: var(--color-text-muted); font-weight: 600; letter-spacing: 0.04em; }
+.log-total-num { font-size: 11px; fill: var(--color-text); font-weight: 600; }
 
 /* Duty line */
 .log-line {
@@ -71,6 +72,10 @@
   stroke-linecap: round;
 }
 
+/* Flags: 45deg marks at each status change */
+.log-flag { stroke: var(--color-orange-deep); stroke-width: 1.5; }
+
 /* Remarks */
 .log-remark-tick { stroke: var(--color-slate); stroke-width: 1; }
-.log-remark { font-size: 8.5px; fill: var(--color-slate); }
+.log-remark { font-size: 8px; fill: var(--color-slate); }
+.log-remark-loc { fill: var(--color-text); font-weight: 600; }

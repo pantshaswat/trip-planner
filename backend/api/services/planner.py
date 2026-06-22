@@ -7,16 +7,86 @@ calls `plan` and serializes the result.
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from ..hos import DutyStatus, plan_trip
-from .geocoding import Place, geocode
+from .geocoding import Place, geocode, reverse_geocode
 from .routing import Coord, RouteLeg, route
 
 # A driver's paper log day runs midnight to midnight.
 MINUTES_PER_DAY = 24 * 60
+
+# Engine tag -> human activity phrasing for the log remarks.
+ACTIVITY = {
+    "Driving": "Driving",
+    "Pickup": "Loading",
+    "Dropoff": "Unloading",
+    "Fuel stop": "Fueling",
+    "30-min break": "30-min break",
+    "10-hr rest": "10-hr rest",
+    "34-hr restart": "34-hr restart",
+}
+
+_EARTH_RADIUS_MI = 3958.8
+
+
+def _haversine_mi(a, b):
+    lat1, lon1 = a
+    lat2, lon2 = b
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    h = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2))
+         * math.sin(dlon / 2) ** 2)
+    return 2 * _EARTH_RADIUS_MI * math.asin(math.sqrt(h))
+
+
+def _point_at_mileage(geometry, target_mi):
+    """[lat, lon] on the route polyline at `target_mi` cumulative miles."""
+    if not geometry:
+        return None
+    if target_mi <= 0:
+        return geometry[0]
+    acc = 0.0
+    for i in range(1, len(geometry)):
+        seg = _haversine_mi(geometry[i - 1], geometry[i])
+        if acc + seg >= target_mi:
+            frac = (target_mi - acc) / seg if seg else 0
+            (lat1, lon1), (lat2, lon2) = geometry[i - 1], geometry[i]
+            return [lat1 + (lat2 - lat1) * frac, lon1 + (lon2 - lon1) * frac]
+        acc += seg
+    return geometry[-1]
+
+
+def _enrich_events(plan, current, pickup, dropoff, combined_geometry, leg1_miles):
+    """Attach a 'City, ST' location + activity phrase to each engine event.
+
+    Known endpoints (start, pickup, dropoff) reuse their forward-geocoded
+    short names; mid-route stops are reverse-geocoded (cached by coordinate so
+    each distinct stop costs at most one request).
+    """
+    cache: dict[tuple, str | None] = {}
+    for i, ev in enumerate(plan.events):
+        ev.activity = "Pre-trip, driving" if (i == 0 and ev.label == "Driving") \
+            else ACTIVITY.get(ev.label, ev.label)
+
+        if ev.miles_marker <= 0.01:
+            ev.location = current.short_name
+        elif ev.label == "Pickup" or abs(ev.miles_marker - leg1_miles) < 0.5:
+            ev.location = pickup.short_name
+        elif ev.label == "Dropoff":
+            ev.location = dropoff.short_name
+        else:
+            coord = _point_at_mileage(combined_geometry, ev.miles_marker)
+            if coord is None:
+                continue
+            key = (round(coord[0], 3), round(coord[1], 3))
+            if key not in cache:
+                cache[key] = reverse_geocode(coord[0], coord[1])
+            ev.location = cache[key]
 
 
 @dataclass
@@ -54,7 +124,10 @@ def _slice_into_days(plan, start_dt: datetime) -> list[DayLog]:
         ev_end = start_dt + timedelta(minutes=ev.end_min)
 
         # Walk day-by-day, clipping the event to each day's midnight boundaries.
+        # Only the first piece carries the remark (the real status change);
+        # a continuation after midnight is not a new change.
         cursor = ev_start
+        first_piece = True
         while cursor < ev_end:
             day_midnight = cursor.replace(hour=0, minute=0, second=0, microsecond=0)
             next_midnight = day_midnight + timedelta(days=1)
@@ -67,9 +140,12 @@ def _slice_into_days(plan, start_dt: datetime) -> list[DayLog]:
                 "duty_status": ev.duty_status.value,
                 "start_min": round(start_of_day_min, 3),
                 "end_min": round(end_of_day_min, 3),
-                "label": ev.label,
+                "label": ev.label if first_piece else None,
+                "location": ev.location if first_piece else None,
+                "activity": ev.activity if first_piece else None,
             })
             cursor = piece_end
+            first_piece = False
 
     days: list[DayLog] = []
     for date in sorted(buckets):
@@ -111,7 +187,13 @@ def plan(
     # 3) Simulate the HOS-constrained trip from the two leg distances.
     trip_plan = plan_trip(leg1.distance_miles, leg2.distance_miles, current_cycle_used)
 
-    # 4) Slice the event timeline into per-day log sheets.
+    # 4) Label each event with a "City, ST" + activity for the log remarks.
+    _enrich_events(
+        trip_plan, current, pickup, dropoff,
+        leg1.geometry + leg2.geometry, leg1.distance_miles,
+    )
+
+    # 5) Slice the event timeline into per-day log sheets.
     days = _slice_into_days(trip_plan, start_dt)
 
     return TripResult(

@@ -81,8 +81,11 @@ class Event:
     duty_status: DutyStatus
     start_min: float       # minutes from trip start
     end_min: float
-    label: str             # human remark, e.g. "Pickup", "30-min break"
+    label: str             # short engine tag, e.g. "Pickup", "30-min break"
     miles_marker: float    # cumulative trip miles where this event begins
+    # Filled in later by the planner (geocoded), not by the engine itself:
+    location: str | None = None   # "City, ST" where this change happens
+    activity: str | None = None   # log-remark phrasing, e.g. "Loading"
 
     @property
     def duration_min(self) -> float:
