@@ -23,6 +23,9 @@ env = environ.Env(
     SECRET_KEY=(str, 'django-insecure-dev-only-change-me'),
     ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1']),
     CORS_ALLOWED_ORIGINS=(list, ['http://localhost:5173']),
+    # Regex for dynamic origins (e.g. Vercel preview deploys). Default matches
+    # any *.vercel.app subdomain so preview URLs work without re-config.
+    CORS_ALLOWED_ORIGIN_REGEXES=(list, [r'^https://.*\.vercel\.app$']),
 )
 environ.Env.read_env(BASE_DIR / '.env')
 
@@ -152,5 +155,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# CORS — which frontend origins may call this API (Vite dev server by default).
+# CORS — which frontend origins may call this API. Exact origins (the Vite dev
+# server + your production Vercel domain) plus a regex for Vercel preview URLs.
 CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS')
+CORS_ALLOWED_ORIGIN_REGEXES = env('CORS_ALLOWED_ORIGIN_REGEXES')

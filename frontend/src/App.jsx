@@ -3,6 +3,7 @@ import './App.css';
 import TripForm from './components/TripForm';
 import RouteMap from './components/RouteMap';
 import LogSheets from './components/LogSheets';
+import ErrorBoundary from './components/ErrorBoundary';
 import { planTrip } from './api/client';
 
 export default function App() {
@@ -53,33 +54,36 @@ export default function App() {
               <span className="spinner" aria-hidden="true" />
               <p>Planning your trip…</p>
               <span className="output-loading-sub">
-                Geocoding locations, routing, and applying HOS rules.
+                Geocoding, routing, and applying HOS rules. The first request
+                after a while can take up to a minute while the server wakes up.
               </span>
             </div>
           ) : result ? (
-            <div className="result-stub">
-              <h2 className="panel-title">Trip planned</h2>
-              <ul className="result-facts">
-                <li>
-                  <span>Total distance</span>
-                  <strong>{result.route.total_distance_miles.toFixed(0)} mi</strong>
-                </li>
-                <li>
-                  <span>Driving time</span>
-                  <strong>{(result.summary.driving_minutes / 60).toFixed(1)} h</strong>
-                </li>
-                <li>
-                  <span>Duty events</span>
-                  <strong>{result.events.length}</strong>
-                </li>
-                <li>
-                  <span>Log days</span>
-                  <strong>{result.days.length}</strong>
-                </li>
-              </ul>
-              <RouteMap result={result} />
-              <LogSheets days={result.days} />
-            </div>
+            <ErrorBoundary resetKey={result}>
+              <div className="result-stub">
+                <h2 className="panel-title">Trip planned</h2>
+                <ul className="result-facts">
+                  <li>
+                    <span>Total distance</span>
+                    <strong>{result.route.total_distance_miles.toFixed(0)} mi</strong>
+                  </li>
+                  <li>
+                    <span>Driving time</span>
+                    <strong>{(result.summary.driving_minutes / 60).toFixed(1)} h</strong>
+                  </li>
+                  <li>
+                    <span>Duty events</span>
+                    <strong>{result.events.length}</strong>
+                  </li>
+                  <li>
+                    <span>Log days</span>
+                    <strong>{result.days.length}</strong>
+                  </li>
+                </ul>
+                <RouteMap result={result} />
+                <LogSheets days={result.days} />
+              </div>
+            </ErrorBoundary>
           ) : (
             <div className="empty-state">
               <span className="empty-mark" aria-hidden="true">▰▰▰</span>

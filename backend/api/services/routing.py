@@ -53,6 +53,13 @@ def route(start: Coord, end: Coord, *, timeout: float = DEFAULT_TIMEOUT) -> Rout
         raise RoutingError(f"Routing request failed: {exc}") from exc
 
     if resp.status_code != 200:
+        # 400 from OSRM usually means the points can't be snapped to a road
+        # (e.g. an island) — there's simply no drivable route.
+        if resp.status_code == 400:
+            raise RoutingError(
+                "No drivable route between these locations. "
+                "Check the addresses are reachable by road."
+            )
         raise RoutingError(f"Routing service returned HTTP {resp.status_code}.")
 
     try:
@@ -62,7 +69,8 @@ def route(start: Coord, end: Coord, *, timeout: float = DEFAULT_TIMEOUT) -> Rout
 
     if data.get("code") != "Ok" or not data.get("routes"):
         raise RoutingError(
-            f"No route found (OSRM code: {data.get('code', 'unknown')})."
+            "No drivable route between these locations. "
+            "Check the addresses are reachable by road."
         )
 
     top = data["routes"][0]
