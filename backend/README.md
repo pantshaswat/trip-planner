@@ -16,11 +16,38 @@ API base: `http://127.0.0.1:8000/api/`
 
 ## Endpoints
 
-| Method | Path           | Purpose                          |
-|--------|----------------|----------------------------------|
-| GET    | `/api/health/` | Liveness check (added in B0)     |
+| Method | Path              | Purpose                                            |
+|--------|-------------------|----------------------------------------------------|
+| GET    | `/api/health/`    | Liveness check                                     |
+| POST   | `/api/plan-trip/` | Geocode → route → HOS simulate → route + logs JSON |
+| GET    | `/api/docs/`      | **Swagger UI** — try the API in the browser        |
+| GET    | `/api/schema/`    | Raw OpenAPI 3 schema                               |
 
-(`/api/plan-trip/` arrives in milestone B3.)
+Open `http://127.0.0.1:8000/api/docs/`, expand **POST /api/plan-trip/**,
+click *Try it out*, and send the prefilled example.
+
+### `POST /api/plan-trip/` body
+
+```json
+{
+  "current_location": "Chicago, IL",
+  "pickup_location": "Joliet, IL",
+  "dropoff_location": "St. Louis, MO",
+  "current_cycle_used": 10,
+  "start_datetime": "2026-06-22T08:00:00Z"
+}
+```
+
+`start_datetime` is optional (defaults to now, UTC) and only positions events
+onto calendar days for the log sheets. Response contains `locations`, `route`
+(per-leg + combined `[lat,lon]` geometry), `events`, `summary`, and per-day
+`days`.
+
+## Tests
+
+```bash
+uv run python manage.py test api      # all 32 tests, offline (network mocked)
+```
 
 ## Layout
 

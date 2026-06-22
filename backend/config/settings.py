@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'corsheaders',
+    'drf_spectacular',
     # Local
     'api',
 ]
@@ -140,6 +141,15 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# OpenAPI / Swagger metadata
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Trip Planner API',
+    'DESCRIPTION': 'Trip planning + automatic ELD log generation for US truck drivers.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # CORS — which frontend origins may call this API (Vite dev server by default).
