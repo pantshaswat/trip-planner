@@ -1,0 +1,60 @@
+.log-sheets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.log-sheets-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.log-sheets-title { font-size: 1.05rem; font-weight: 700; }
+.log-sheets-count { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.log-sheet {
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.log-sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.log-date { font-weight: 600; font-size: 0.9rem; }
+.log-grand-total { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.log-svg { width: 100%; height: auto; display: block; }
+
+/* Grid */
+.log-grid-outline { fill: none; stroke: var(--color-border); stroke-width: 1.5; }
+.log-grid-hour { stroke: var(--color-border); stroke-width: 1; }
+.log-grid-quarter { stroke: var(--color-border); stroke-width: 0.5; opacity: 0.5; }
+.log-band { fill: var(--color-white); }
+.log-band-alt { fill: var(--color-bg); }
+
+/* Text */
+.log-hour { font-size: 9px; fill: var(--color-text-muted); }
+.log-row-label { font-size: 9px; fill: var(--color-text); font-weight: 500; }
+.log-row-total { font-size: 11px; fill: var(--color-text); font-weight: 600; }
+
+/* Duty line */
+.log-line {
+  fill: none;
+  stroke: var(--color-orange);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Remarks */
+.log-remark-tick { stroke: var(--color-slate); stroke-width: 1; }
+.log-remark { font-size: 8.5px; fill: var(--color-slate); }
