@@ -1,122 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import TripForm from './components/TripForm';
+import { planTrip } from './api/client';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+
+  async function handlePlan(payload) {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const data = await planTrip(payload);
+      setResult(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="app-header">
+        <div className="app-header-inner">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">▰</span>
+            <span className="brand-name">TripLogger</span>
+          </div>
+          <span className="brand-tagline">HOS-compliant trip &amp; ELD log planner</span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+      </header>
+
+      <main className="app-main">
+        <section className="panel form-panel">
+          <h1 className="panel-title">Plan a trip</h1>
+          <p className="panel-sub">
+            Enter your route and current cycle. We apply federal Hours-of-Service
+            rules and generate your daily logs.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+          <TripForm onSubmit={handlePlan} loading={loading} />
+          {error && <div className="alert alert-error" role="alert">{error}</div>}
+        </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <section className="panel output-panel">
+          {result ? (
+            <div className="result-stub">
+              <h2 className="panel-title">Trip planned</h2>
+              <ul className="result-facts">
+                <li>
+                  <span>Total distance</span>
+                  <strong>{result.route.total_distance_miles.toFixed(0)} mi</strong>
+                </li>
+                <li>
+                  <span>Driving time</span>
+                  <strong>{(result.summary.driving_minutes / 60).toFixed(1)} h</strong>
+                </li>
+                <li>
+                  <span>Duty events</span>
+                  <strong>{result.events.length}</strong>
+                </li>
+                <li>
+                  <span>Log days</span>
+                  <strong>{result.days.length}</strong>
+                </li>
+              </ul>
+              <p className="placeholder-note">
+                Map and daily log sheets render here next (milestones F1–F2).
+              </p>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <span className="empty-mark" aria-hidden="true">▰▰▰</span>
+              <p>Your route map and daily logs will appear here.</p>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
 }
-
-export default App
