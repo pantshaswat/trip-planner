@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import TripForm from './components/TripForm';
+import RouteMap from './components/RouteMap';
 import { planTrip } from './api/client';
 
 export default function App() {
@@ -67,8 +68,9 @@ export default function App() {
                   <strong>{result.days.length}</strong>
                 </li>
               </ul>
+              <RouteMap result={result} />
               <p className="placeholder-note">
-                Map and daily log sheets render here next (milestones F1–F2).
+                Daily log sheets render here next (milestone F2).
               </p>
             </div>
           ) : (
