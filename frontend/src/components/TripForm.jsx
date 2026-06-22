@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AutocompleteInput from './AutocompleteInput';
 import './TripForm.css';
 
 const EMPTY = {
@@ -39,18 +40,14 @@ export default function TripForm({ onSubmit, loading }) {
   return (
     <form className="trip-form" onSubmit={handleSubmit} noValidate>
       {FIELDS.map((f) => (
-        <label className="field" key={f.name}>
-          <span className="field-label">{f.label}</span>
-          <input
-            className="field-input"
-            type="text"
-            value={values[f.name]}
-            placeholder={f.placeholder}
-            onChange={(e) => update(f.name, e.target.value)}
-            required
-            disabled={loading}
-          />
-        </label>
+        <AutocompleteInput
+          key={f.name}
+          label={f.label}
+          placeholder={f.placeholder}
+          value={values[f.name]}
+          onChange={(v) => update(f.name, v)}
+          disabled={loading}
+        />
       ))}
 
       <label className="field">
