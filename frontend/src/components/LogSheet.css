@@ -38,15 +38,48 @@
   border-radius: var(--radius-sm);
 }
 
-.log-sheet-head {
+/* Header band */
+.log-band-top {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.log-date { font-weight: 600; font-size: 0.9rem; }
-.log-grand-total { font-size: 0.8rem; color: var(--color-text-muted); }
+.log-band-left { display: flex; flex-direction: column; gap: 2px; }
+.log-sheet-title { font-weight: 700; font-size: 0.95rem; }
+.log-sheet-date { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.log-fields { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; }
+
+.log-field { display: flex; flex-direction: column; min-width: 70px; }
+.log-field.wide { min-width: 120px; }
+.log-field-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 1.1rem;
+  padding-bottom: 1px;
+}
+.log-field-label { font-size: 0.62rem; color: var(--color-text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* Footer band */
+.log-band-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+.log-signature { display: flex; flex-direction: column; min-width: 150px; flex: 1; }
+.log-sign-line { min-height: 1.1rem; }
 
 .log-svg { width: 100%; height: auto; display: block; }
 
@@ -72,8 +105,11 @@
   stroke-linecap: round;
 }
 
-/* Flags: 45deg marks at each status change */
-.log-flag { stroke: var(--color-orange-deep); stroke-width: 1.5; }
+/* Corner dots at each status change */
+.log-corner-dot { fill: var(--color-orange-deep); }
+
+/* U-bracket: truck stationary (not in motion) */
+.log-bracket { fill: none; stroke: var(--color-charcoal); stroke-width: 1.2; }
 
 /* Remarks */
 .log-remark-tick { stroke: var(--color-slate); stroke-width: 1; }
