@@ -176,7 +176,12 @@ def plan(
     Raises GeocodingError / RoutingError on external-service failure; the engine
     raises ValueError on impossible inputs.
     """
-    start_dt = start_datetime or datetime.now(timezone.utc)
+    # Anchor every trip to 06:00 on day 1 so the first sheet reads like a normal
+    # working day (morning off-duty fill before the start) and short trips stay
+    # on a single sheet. An explicit start_datetime still overrides this.
+    start_dt = start_datetime or datetime.now(timezone.utc).replace(
+        hour=6, minute=0, second=0, microsecond=0
+    )
     if start_dt.tzinfo is None:
         start_dt = start_dt.replace(tzinfo=timezone.utc)
 

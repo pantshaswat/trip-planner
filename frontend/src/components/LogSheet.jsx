@@ -13,12 +13,18 @@ const TOP = 34;       // top hour numbers above grid
 const ROW_H = 30;
 const GRID_H = ROW_H * ROWS.length;
 const GRID_BOTTOM = TOP + GRID_H;
-const BOTTOM_NUM_Y = GRID_BOTTOM + 13;   // bottom hour numbers
-const REMARK_TOP = GRID_BOTTOM + 24;     // brackets + remarks start here
+const BOTTOM_NUM_Y = GRID_BOTTOM + 12;   // bottom hour numbers
+const REMARK_TOP = GRID_BOTTOM + 22;     // brackets sit here, just below the scale
 const BRACKET_DROP = 7;
-const REMARK_H = 132;
+const REMARK_H = 152;
 const W = LEFT + GRID_W + RIGHT;
 const H = GRID_BOTTOM + REMARK_H;
+
+// Remark leader: a straight line dropping down-and-left at this angle, with the
+// two text lines riding along it (the line reads like an underline).
+const LEADER_DEG = 52;
+const LEADER_COS = Math.cos((LEADER_DEG * Math.PI) / 180);
+const LEADER_SIN = Math.sin((LEADER_DEG * Math.PI) / 180);
 
 const HRS_X = LEFT + GRID_W + 28;
 const MIN_X = LEFT + GRID_W + 62;
@@ -77,8 +83,10 @@ export default function LogSheet({ day }) {
     return dots;
   }, [filled]);
 
-  const remarks = filled.filter((s) => s.label);
-  const brackets = remarks.filter((s) => s.duty_status !== 'Driving');
+  // Remark per real stop. Plain "Driving" resumes are skipped so the labels
+  // don't pile up at close-together changes (matches the paper logs).
+  const remarks = filled.filter((s) => s.label && s.activity !== 'Driving');
+  const brackets = filled.filter((s) => s.label && s.duty_status !== 'Driving');
 
   const drivingMiles = Math.round((totals.Driving / 60) * AVG_SPEED_MPH);
   const dateLabel = new Date(`${day.date}T00:00:00`).toLocaleDateString(undefined, {
@@ -94,6 +102,7 @@ export default function LogSheet({ day }) {
         </div>
         <div className="log-fields">
           <Field label="Total miles driving today" value={`${drivingMiles}`} />
+          <Field label="Total truck mileage today" value={`${drivingMiles}`} />
           <Field label="Carrier" value="—" wide />
           <Field label="Home terminal" value="—" wide />
           <Field label="Co-driver" value="N/A" />
@@ -115,11 +124,11 @@ export default function LogSheet({ day }) {
           </g>
         ))}
 
-        {/* Minor ticks: hang from top edge, rise from bottom edge (15-min;
-            half-hour slightly taller). Not full-height. */}
+        {/* Minor ticks: 15-min marks hanging from the top edge and rising from
+            the bottom edge; the half-hour tick is taller. Not full-height. */}
         {Array.from({ length: 24 * 4 + 1 }, (_, q) => {
           if (q % 4 === 0) return null; // hour handled above
-          const len = q % 2 === 0 ? 8 : 5; // half-hour taller
+          const len = q % 2 === 0 ? 12 : 7; // half-hour taller
           const tx = x(q * 15);
           return (
             <g key={`t${q}`} className="log-minor-tick">
@@ -152,7 +161,7 @@ export default function LogSheet({ day }) {
               className="log-grid-hour" />
         <rect x={LEFT} y={TOP} width={GRID_W} height={GRID_H} className="log-grid-outline" />
 
-        {/* U-brackets: truck stationary (non-driving) durations */}
+        {/* U-brackets (cups): stationary, non-driving durations only */}
         {brackets.map((s, i) => {
           const x1 = x(s.start_min);
           const x2 = x(s.end_min);
@@ -170,19 +179,35 @@ export default function LogSheet({ day }) {
           <circle key={`dot-${i}`} cx={cx} cy={cy} r="2.4" className="log-corner-dot" />
         ))}
 
-        {/* Remarks: 45deg flag tick + "City, ST" over activity */}
+        {/* Flags: short 45deg ticks on the grid at each status change */}
+        {cornerDots.filter((_, i) => i % 2 === 0).map(([cx], i) => {
+          // one flag per change, centered on the connector's midpoint
+          const [, y1] = cornerDots[i * 2];
+          const [, y2] = cornerDots[i * 2 + 1];
+          const ym = (y1 + y2) / 2;
+          return (
+            <line key={`flag-${i}`} x1={cx - 4} y1={ym + 4} x2={cx + 4} y2={ym - 4}
+                  className="log-flag" />
+          );
+        })}
+
+        {/* Remarks: a single 52deg leader from the bracket region with the two
+            text lines ("City, ST" / activity) riding along it as an underline. */}
         {remarks.map((s, i) => {
           const rx = x(s.start_min);
+          const py = REMARK_TOP + BRACKET_DROP;          // start at bracket bottom
+          const loc = s.location || '—';
+          const act = s.activity || '';
+          const w = Math.min(132, Math.max(46, Math.max(loc.length, act.length) * 4.2));
+          const qx = rx - LEADER_COS * w;                 // far (down-left) end
+          const qy = py + LEADER_SIN * w;
           return (
-            <g key={`rem-${i}`}>
-              {/* 45-degree flag tick at the transition */}
-              <line x1={rx} y1={REMARK_TOP} x2={rx + 7} y2={REMARK_TOP - 7} className="log-flag" />
-              <g transform={`translate(${rx}, ${REMARK_TOP + 16}) rotate(-45)`}>
-                <text className="log-remark" textAnchor="end">
-                  <tspan x="0" dy="0" className="log-remark-loc">{s.location || '—'}</tspan>
-                  <tspan x="0" dy="9">{s.activity}</tspan>
-                </text>
-              </g>
+            <g key={`rem-${i}`} transform={`translate(${qx}, ${qy}) rotate(-${LEADER_DEG})`}>
+              <line x1="0" y1="0" x2={w} y2="0" className="log-leader" />
+              <text className="log-remark" textAnchor="start">
+                <tspan x="2" y="-13" className="log-remark-loc">{loc}</tspan>
+                <tspan x="2" y="-3.5">{act}</tspan>
+              </text>
             </g>
           );
         })}
