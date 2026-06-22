@@ -6,20 +6,22 @@ import {
 const AVG_SPEED_MPH = 55; // backend assumption; used only to show miles/day
 
 // SVG geometry (user units; scaled responsively via viewBox).
-const LEFT = 132;
+const LEFT = 150;
 const GRID_W = 696;   // 24h timeline width  (29 px / hour)
 const RIGHT = 84;     // hours + minutes totals columns
-const TOP = 30;
-const ROW_H = 32;
+const TOP = 34;       // top hour numbers above grid
+const ROW_H = 30;
 const GRID_H = ROW_H * ROWS.length;
 const GRID_BOTTOM = TOP + GRID_H;
-const REMARK_H = 120;
+const BOTTOM_NUM_Y = GRID_BOTTOM + 13;   // bottom hour numbers
+const REMARK_TOP = GRID_BOTTOM + 24;     // brackets + remarks start here
+const BRACKET_DROP = 7;
+const REMARK_H = 132;
 const W = LEFT + GRID_W + RIGHT;
 const H = GRID_BOTTOM + REMARK_H;
 
 const HRS_X = LEFT + GRID_W + 28;
 const MIN_X = LEFT + GRID_W + 62;
-const BRACKET_DROP = 7; // how far the U hangs below the grid
 
 const x = (min) => LEFT + (min / MINUTES_PER_DAY) * GRID_W;
 const rowCenterY = (status) => TOP + ROW_INDEX[status] * ROW_H + ROW_H / 2;
@@ -30,7 +32,6 @@ function hourLabel(h) {
   return String(h % 12 === 0 ? 12 : h % 12);
 }
 
-// Split minutes into whole hours + minutes rounded to 00/15/30/45.
 function splitHM(total) {
   let hh = Math.floor(total / 60);
   let mm = Math.round((total - hh * 60) / 15) * 15;
@@ -38,11 +39,10 @@ function splitHM(total) {
   return { hh, mm: String(mm).padStart(2, '0') };
 }
 
-// A small labelled field for the header/footer bands.
 function Field({ label, value, wide }) {
   return (
     <div className={`log-field ${wide ? 'wide' : ''}`}>
-      <span className="log-field-value">{value || ' '}</span>
+      <span className="log-field-value">{value || ' '}</span>
       <span className="log-field-label">{label}</span>
     </div>
   );
@@ -64,7 +64,6 @@ export default function LogSheet({ day }) {
     return d;
   }, [filled]);
 
-  // Corner dots: where the line steps between rows.
   const cornerDots = useMemo(() => {
     const dots = [];
     for (let i = 1; i < filled.length; i++) {
@@ -79,7 +78,6 @@ export default function LogSheet({ day }) {
   }, [filled]);
 
   const remarks = filled.filter((s) => s.label);
-  // Brackets mark the durations the truck was NOT moving (non-driving stops).
   const brackets = remarks.filter((s) => s.duty_status !== 'Driving');
 
   const drivingMiles = Math.round((totals.Driving / 60) * AVG_SPEED_MPH);
@@ -89,7 +87,6 @@ export default function LogSheet({ day }) {
 
   return (
     <figure className="log-sheet">
-      {/* Header band */}
       <div className="log-band-top">
         <div className="log-band-left">
           <span className="log-sheet-title">Driver's Daily Log</span>
@@ -105,25 +102,32 @@ export default function LogSheet({ day }) {
 
       <svg className="log-svg" viewBox={`0 0 ${W} ${H}`} role="img"
            aria-label={`Daily log for ${day.date}`}>
-        <text x={HRS_X} y={TOP - 12} className="log-total-head" textAnchor="middle">Hrs</text>
-        <text x={MIN_X} y={TOP - 12} className="log-total-head" textAnchor="middle">Min</text>
+        {/* Totals column headers */}
+        <text x={HRS_X} y={TOP - 14} className="log-total-head" textAnchor="middle">Hrs</text>
+        <text x={MIN_X} y={TOP - 14} className="log-total-head" textAnchor="middle">Min</text>
 
-        {/* Hour numbers + vertical hour gridlines */}
+        {/* Hour numbers (top + bottom) and full hour gridlines */}
         {Array.from({ length: 25 }, (_, h) => (
           <g key={h}>
-            <text x={x(h * 60)} y={TOP - 12} className="log-hour" textAnchor="middle">
-              {hourLabel(h)}
-            </text>
+            <text x={x(h * 60)} y={TOP - 14} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
+            <text x={x(h * 60)} y={BOTTOM_NUM_Y} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
             <line x1={x(h * 60)} y1={TOP} x2={x(h * 60)} y2={GRID_BOTTOM} className="log-grid-hour" />
           </g>
         ))}
-        {/* Quarter-hour minor ticks */}
-        {Array.from({ length: 24 * 4 + 1 }, (_, q) => (
-          q % 4 !== 0 ? (
-            <line key={`q${q}`} x1={x(q * 15)} y1={TOP} x2={x(q * 15)} y2={GRID_BOTTOM}
-                  className="log-grid-quarter" />
-          ) : null
-        ))}
+
+        {/* Minor ticks: hang from top edge, rise from bottom edge (15-min;
+            half-hour slightly taller). Not full-height. */}
+        {Array.from({ length: 24 * 4 + 1 }, (_, q) => {
+          if (q % 4 === 0) return null; // hour handled above
+          const len = q % 2 === 0 ? 8 : 5; // half-hour taller
+          const tx = x(q * 15);
+          return (
+            <g key={`t${q}`} className="log-minor-tick">
+              <line x1={tx} y1={TOP} x2={tx} y2={TOP + len} />
+              <line x1={tx} y1={GRID_BOTTOM} x2={tx} y2={GRID_BOTTOM - len} />
+            </g>
+          );
+        })}
 
         {/* Row bands, labels, totals */}
         {ROWS.map((row, i) => {
@@ -152,28 +156,28 @@ export default function LogSheet({ day }) {
         {brackets.map((s, i) => {
           const x1 = x(s.start_min);
           const x2 = x(s.end_min);
-          const yb = GRID_BOTTOM + BRACKET_DROP;
+          const yb = REMARK_TOP + BRACKET_DROP;
           return (
             <path key={`br-${i}`}
-                  d={`M ${x1} ${GRID_BOTTOM} L ${x1} ${yb} L ${x2} ${yb} L ${x2} ${GRID_BOTTOM}`}
+                  d={`M ${x1} ${REMARK_TOP} L ${x1} ${yb} L ${x2} ${yb} L ${x2} ${REMARK_TOP}`}
                   className="log-bracket" />
           );
         })}
 
-        {/* The duty-status line + corner dots */}
+        {/* Duty-status line (black) + red corner dots */}
         <path d={linePath} className="log-line" />
         {cornerDots.map(([cx, cy], i) => (
           <circle key={`dot-${i}`} cx={cx} cy={cy} r="2.4" className="log-corner-dot" />
         ))}
 
-        {/* Remarks: drop line + 45deg-left "City, ST" / activity */}
+        {/* Remarks: 45deg flag tick + "City, ST" over activity */}
         {remarks.map((s, i) => {
           const rx = x(s.start_min);
           return (
             <g key={`rem-${i}`}>
-              <line x1={rx} y1={GRID_BOTTOM + BRACKET_DROP} x2={rx} y2={GRID_BOTTOM + 20}
-                    className="log-remark-tick" />
-              <g transform={`translate(${rx}, ${GRID_BOTTOM + 22}) rotate(-45)`}>
+              {/* 45-degree flag tick at the transition */}
+              <line x1={rx} y1={REMARK_TOP} x2={rx + 7} y2={REMARK_TOP - 7} className="log-flag" />
+              <g transform={`translate(${rx}, ${REMARK_TOP + 16}) rotate(-45)`}>
                 <text className="log-remark" textAnchor="end">
                   <tspan x="0" dy="0" className="log-remark-loc">{s.location || '—'}</tspan>
                   <tspan x="0" dy="9">{s.activity}</tspan>
@@ -184,7 +188,6 @@ export default function LogSheet({ day }) {
         })}
       </svg>
 
-      {/* Footer band */}
       <div className="log-band-bottom">
         <Field label="Shipper" value="—" wide />
         <Field label="Commodity" value="—" wide />

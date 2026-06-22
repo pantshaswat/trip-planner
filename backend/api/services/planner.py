@@ -19,15 +19,15 @@ from .routing import Coord, RouteLeg, route
 # A driver's paper log day runs midnight to midnight.
 MINUTES_PER_DAY = 24 * 60
 
-# Engine tag -> human activity phrasing for the log remarks.
+# Engine tag -> real log activity term for the remarks.
 ACTIVITY = {
     "Driving": "Driving",
     "Pickup": "Loading",
     "Dropoff": "Unloading",
     "Fuel stop": "Fueling",
     "30-min break": "30-min break",
-    "10-hr rest": "10-hr rest",
-    "34-hr restart": "34-hr restart",
+    "10-hr rest": "10-hr break",
+    "34-hr restart": "34-hr break",
 }
 
 _EARTH_RADIUS_MI = 3958.8
@@ -69,9 +69,14 @@ def _enrich_events(plan, current, pickup, dropoff, combined_geometry, leg1_miles
     each distinct stop costs at most one request).
     """
     cache: dict[tuple, str | None] = {}
+    last_i = len(plan.events) - 1
     for i, ev in enumerate(plan.events):
-        ev.activity = "Pre-trip, driving" if (i == 0 and ev.label == "Driving") \
-            else ACTIVITY.get(ev.label, ev.label)
+        if i == 0 and ev.label == "Driving":
+            ev.activity = "Pre-trip inspection"
+        elif i == last_i and ev.label == "Dropoff":
+            ev.activity = "Unloading, post-trip inspection"
+        else:
+            ev.activity = ACTIVITY.get(ev.label, ev.label)
 
         if ev.miles_marker <= 0.01:
             ev.location = current.short_name

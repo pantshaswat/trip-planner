@@ -84,9 +84,9 @@
 .log-svg { width: 100%; height: auto; display: block; }
 
 /* Grid */
-.log-grid-outline { fill: none; stroke: var(--color-border); stroke-width: 1.5; }
+.log-grid-outline { fill: none; stroke: var(--color-charcoal); stroke-width: 1.3; }
 .log-grid-hour { stroke: var(--color-border); stroke-width: 1; }
-.log-grid-quarter { stroke: var(--color-border); stroke-width: 0.5; opacity: 0.5; }
+.log-minor-tick line { stroke: var(--color-slate); stroke-width: 0.8; }
 .log-band { fill: var(--color-white); }
 .log-band-alt { fill: var(--color-bg); }
 
@@ -96,22 +96,24 @@
 .log-total-head { font-size: 8px; fill: var(--color-text-muted); font-weight: 600; letter-spacing: 0.04em; }
 .log-total-num { font-size: 11px; fill: var(--color-text); font-weight: 600; }
 
-/* Duty line */
+/* Duty line — black (orange is reserved for route/buttons) */
 .log-line {
   fill: none;
-  stroke: var(--color-orange);
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+  stroke: var(--color-charcoal);
+  stroke-width: 2.2;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
 }
 
-/* Corner dots at each status change */
-.log-corner-dot { fill: var(--color-orange-deep); }
+/* Red corner dots at each status change */
+.log-corner-dot { fill: var(--color-log-dot); }
 
 /* U-bracket: truck stationary (not in motion) */
-.log-bracket { fill: none; stroke: var(--color-charcoal); stroke-width: 1.2; }
+.log-bracket { fill: none; stroke: var(--color-charcoal); stroke-width: 1.1; }
+
+/* 45-degree flag tick at each status change */
+.log-flag { stroke: var(--color-charcoal); stroke-width: 1.1; }
 
 /* Remarks */
-.log-remark-tick { stroke: var(--color-slate); stroke-width: 1; }
 .log-remark { font-size: 8px; fill: var(--color-slate); }
 .log-remark-loc { fill: var(--color-text); font-weight: 600; }

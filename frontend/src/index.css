@@ -23,6 +23,7 @@
 
   --color-danger: #C0392B;
   --color-danger-bg: #FCEDEC;
+  --color-log-dot: #D7263D;   /* red corner dots on the log grid */
 
   /* Type */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

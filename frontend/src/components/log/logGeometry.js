@@ -5,10 +5,10 @@ export const MINUTES_PER_DAY = 1440;
 
 // Rows top -> bottom, matching the federal grid order.
 export const ROWS = [
-  { key: 'OffDuty', label: 'Off Duty' },
-  { key: 'Sleeper', label: 'Sleeper Berth' },
-  { key: 'Driving', label: 'Driving' },
-  { key: 'OnDuty', label: 'On Duty (not driving)' },
+  { key: 'OffDuty', label: 'OFF DUTY' },
+  { key: 'Sleeper', label: 'SLEEPER BERTH' },
+  { key: 'Driving', label: 'DRIVING' },
+  { key: 'OnDuty', label: 'ON DUTY (NOT DRIVING)' },
 ];
 
 export const ROW_INDEX = { OffDuty: 0, Sleeper: 1, Driving: 2, OnDuty: 3 };
