@@ -1,0 +1,31 @@
+# Python / Django (backend)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+backend/db.sqlite3
+backend/staticfiles/
+
+# Environment / secrets
+.env
+*.env
+!*.env.example
+
+# uv
+# uv.lock IS committed; the virtualenv is not.
+
+# Node (frontend has its own .gitignore too)
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editors / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.sw?
+
+# Logs
+*.log
