@@ -13,10 +13,11 @@ const TOP = 34;       // top hour numbers above grid
 const ROW_H = 30;
 const GRID_H = ROW_H * ROWS.length;
 const GRID_BOTTOM = TOP + GRID_H;
-const BOTTOM_NUM_Y = GRID_BOTTOM + 12;   // bottom hour numbers
-const REMARK_TOP = GRID_BOTTOM + 22;     // brackets sit here, just below the scale
+const STRIP_BOT = GRID_BOTTOM + 8;       // bottom tick strip depth
+const BOTTOM_NUM_Y = GRID_BOTTOM + 18;   // bottom hour numbers
+const REMARK_TOP = GRID_BOTTOM + 30;     // brackets sit here, below the strip
 const BRACKET_DROP = 7;
-const REMARK_H = 152;
+const REMARK_H = 168;
 const W = LEFT + GRID_W + RIGHT;
 const H = GRID_BOTTOM + REMARK_H;
 
@@ -115,30 +116,7 @@ export default function LogSheet({ day }) {
         <text x={HRS_X} y={TOP - 14} className="log-total-head" textAnchor="middle">Hrs</text>
         <text x={MIN_X} y={TOP - 14} className="log-total-head" textAnchor="middle">Min</text>
 
-        {/* Hour numbers (top + bottom) and full hour gridlines */}
-        {Array.from({ length: 25 }, (_, h) => (
-          <g key={h}>
-            <text x={x(h * 60)} y={TOP - 14} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
-            <text x={x(h * 60)} y={BOTTOM_NUM_Y} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
-            <line x1={x(h * 60)} y1={TOP} x2={x(h * 60)} y2={GRID_BOTTOM} className="log-grid-hour" />
-          </g>
-        ))}
-
-        {/* Minor ticks: 15-min marks hanging from the top edge and rising from
-            the bottom edge; the half-hour tick is taller. Not full-height. */}
-        {Array.from({ length: 24 * 4 + 1 }, (_, q) => {
-          if (q % 4 === 0) return null; // hour handled above
-          const len = q % 2 === 0 ? 12 : 7; // half-hour taller
-          const tx = x(q * 15);
-          return (
-            <g key={`t${q}`} className="log-minor-tick">
-              <line x1={tx} y1={TOP} x2={tx} y2={TOP + len} />
-              <line x1={tx} y1={GRID_BOTTOM} x2={tx} y2={GRID_BOTTOM - len} />
-            </g>
-          );
-        })}
-
-        {/* Row bands, labels, totals */}
+        {/* 1) Row bands (drawn first so grid lines sit on top), labels, totals */}
         {ROWS.map((row, i) => {
           const yTop = TOP + i * ROW_H;
           const yMid = yTop + ROW_H / 2;
@@ -157,9 +135,61 @@ export default function LogSheet({ day }) {
           );
         })}
 
+        {/* 2) Full-height hour lines spanning all four rows */}
+        {Array.from({ length: 25 }, (_, h) => (
+          <line key={`hl${h}`} x1={x(h * 60)} y1={TOP} x2={x(h * 60)} y2={GRID_BOTTOM}
+                className="log-grid-hour" />
+        ))}
+
+        {/* 3) Per-row 15-min ticks: each hour split into four inside EVERY row,
+              hanging from that row's top edge (:30 taller than :15/:45), plus a
+              matching set rising from the bottom edge of the bottom row. */}
+        {ROWS.map((row, i) => {
+          const yTop = TOP + i * ROW_H;
+          const isLast = i === ROWS.length - 1;
+          return (
+            <g key={`ticks-${i}`} className="log-minor-tick">
+              {Array.from({ length: 24 * 4 + 1 }, (_, q) => {
+                if (q % 4 === 0) return null;          // hour line handled above
+                const len = q % 2 === 0 ? 9 : 5;        // :30 taller than :15/:45
+                const tx = x(q * 15);
+                return (
+                  <g key={q}>
+                    <line x1={tx} y1={yTop} x2={tx} y2={yTop + len} />
+                    {isLast && <line x1={tx} y1={GRID_BOTTOM} x2={tx} y2={GRID_BOTTOM - len} />}
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })}
+
+        {/* Hour numbers, top + bottom scales */}
+        {Array.from({ length: 25 }, (_, h) => (
+          <g key={`hn${h}`}>
+            <text x={x(h * 60)} y={TOP - 14} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
+            <text x={x(h * 60)} y={BOTTOM_NUM_Y} className="log-hour" textAnchor="middle">{hourLabel(h)}</text>
+          </g>
+        ))}
+
+        {/* 4) Bottom tick strip below the grid: hour ticks + half-hour ticks */}
+        <g className="log-strip">
+          {Array.from({ length: 25 }, (_, h) => (
+            <line key={`sh${h}`} x1={x(h * 60)} y1={GRID_BOTTOM} x2={x(h * 60)} y2={STRIP_BOT}
+                  className="log-strip-hour" />
+          ))}
+          {Array.from({ length: 24 }, (_, h) => (
+            <line key={`s30-${h}`} x1={x(h * 60 + 30)} y1={GRID_BOTTOM} x2={x(h * 60 + 30)} y2={STRIP_BOT - 3}
+                  className="log-strip-half" />
+          ))}
+        </g>
+
         <line x1={(HRS_X + MIN_X) / 2} y1={TOP} x2={(HRS_X + MIN_X) / 2} y2={GRID_BOTTOM}
               className="log-grid-hour" />
         <rect x={LEFT} y={TOP} width={GRID_W} height={GRID_H} className="log-grid-outline" />
+
+        {/* REMARKS label at the bottom-left, where the leaders begin */}
+        <text x="6" y={REMARK_TOP + 12} className="log-remarks-label">REMARKS</text>
 
         {/* U-brackets (cups): stationary, non-driving durations only */}
         {brackets.map((s, i) => {
