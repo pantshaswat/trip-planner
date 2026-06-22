@@ -114,9 +114,6 @@
 /* U-bracket (cup): truck stationary (not in motion) */
 .log-bracket { fill: none; stroke: var(--color-charcoal); stroke-width: 1.1; }
 
-/* 45-degree red flag tick on the grid at each status change */
-.log-flag { stroke: var(--color-log-dot); stroke-width: 1.4; }
-
 /* Remarks: angled leader line + text riding on it */
 .log-leader { stroke: var(--color-slate); stroke-width: 0.8; }
 .log-remark { font-size: 8px; fill: var(--color-slate); }

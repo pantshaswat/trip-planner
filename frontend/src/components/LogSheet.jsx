@@ -142,23 +142,16 @@ export default function LogSheet({ day }) {
         ))}
 
         {/* 3) Per-row 15-min ticks: each hour split into four inside EVERY row,
-              hanging from that row's top edge (:30 taller than :15/:45), plus a
-              matching set rising from the bottom edge of the bottom row. */}
+              rising UPWARD from that row's bottom line (:30 taller than :15/:45). */}
         {ROWS.map((row, i) => {
-          const yTop = TOP + i * ROW_H;
-          const isLast = i === ROWS.length - 1;
+          const yBottom = TOP + (i + 1) * ROW_H;
           return (
             <g key={`ticks-${i}`} className="log-minor-tick">
               {Array.from({ length: 24 * 4 + 1 }, (_, q) => {
                 if (q % 4 === 0) return null;          // hour line handled above
                 const len = q % 2 === 0 ? 9 : 5;        // :30 taller than :15/:45
                 const tx = x(q * 15);
-                return (
-                  <g key={q}>
-                    <line x1={tx} y1={yTop} x2={tx} y2={yTop + len} />
-                    {isLast && <line x1={tx} y1={GRID_BOTTOM} x2={tx} y2={GRID_BOTTOM - len} />}
-                  </g>
-                );
+                return <line key={q} x1={tx} y1={yBottom} x2={tx} y2={yBottom - len} />;
               })}
             </g>
           );
@@ -208,18 +201,6 @@ export default function LogSheet({ day }) {
         {cornerDots.map(([cx, cy], i) => (
           <circle key={`dot-${i}`} cx={cx} cy={cy} r="2.4" className="log-corner-dot" />
         ))}
-
-        {/* Flags: short 45deg ticks on the grid at each status change */}
-        {cornerDots.filter((_, i) => i % 2 === 0).map(([cx], i) => {
-          // one flag per change, centered on the connector's midpoint
-          const [, y1] = cornerDots[i * 2];
-          const [, y2] = cornerDots[i * 2 + 1];
-          const ym = (y1 + y2) / 2;
-          return (
-            <line key={`flag-${i}`} x1={cx - 4} y1={ym + 4} x2={cx + 4} y2={ym - 4}
-                  className="log-flag" />
-          );
-        })}
 
         {/* Remarks: a single 52deg leader from the bracket region with the two
             text lines ("City, ST" / activity) riding along it as an underline. */}
