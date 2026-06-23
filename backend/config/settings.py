@@ -133,6 +133,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Where `collectstatic` gathers files for production serving.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 
